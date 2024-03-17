@@ -32,6 +32,7 @@ EngineDevice::EngineDevice(HWND hWnd)
 	scDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scDesc.Flags = 0;
 
+	window = hWnd;
 	UINT swapCreateFlags = 0u;
 #ifndef NDEBUG
 	swapCreateFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -104,6 +105,13 @@ EngineDevice::EngineDevice(HWND hWnd)
 	pDevice->CreateDepthStencilView(pDepthStencil.Get(), &descDSV, &pDSV);
 
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), pDSV.Get());
+
+	float fov = DirectX::XM_PI / 4.0f;
+	float screenAspect = mBackbufferWidth / mBackbufferHeight;
+
+	mWorldMatrix = DirectX::XMMatrixIdentity();
+	mOrthoMatrix = DirectX::XMMatrixOrthographicLH(mBackbufferWidth, mBackbufferHeight, SCREEN_NEAR, SCREEN_DEPTH);
+	mProjMatrix = DirectX::XMMatrixPerspectiveFovLH(fov, screenAspect, SCREEN_NEAR, SCREEN_DEPTH);
 }
 
 void EngineDevice::PresentFrame(bool vsync)
@@ -111,4 +119,19 @@ void EngineDevice::PresentFrame(bool vsync)
 	
 	pSwapChain->Present(vsync ? 1 : 0, vsync ? 0 : DXGI_PRESENT_DO_NOT_WAIT);
 
+}
+
+DirectX::XMMATRIX EngineDevice::GetProjectionMatrix()
+{
+	return mProjMatrix;
+}
+
+DirectX::XMMATRIX EngineDevice::GetWorldMatrix()
+{
+	return mWorldMatrix;
+}
+
+DirectX::XMMATRIX EngineDevice::GetOrthoMatrix()
+{
+	return mOrthoMatrix;
 }

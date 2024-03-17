@@ -150,6 +150,12 @@ enum KeyCode
 	NumKeyCodes = 0x100  // Maximum number of key codes
 };
 
+struct Float2
+{
+	float x;
+	float y;
+};
+
 enum KeyState
 {
 	NotPressed,
@@ -159,7 +165,7 @@ enum KeyState
 
 void InputInit();
 
-//Vector2i MousePos();
+Float2 MousePos();
 
 void MouseMove(int X, int Y);
 

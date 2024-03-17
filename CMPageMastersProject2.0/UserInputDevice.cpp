@@ -3,22 +3,23 @@
 
 std::array<KeyState, NumKeyCodes> gKeyStates;
 
-//Vector2i gMPosition = { 0, 0 };
+Float2 gMPosition = { 0, 0 };
 
 void InputInit()
 {
 	for (auto& keyState : gKeyStates)  keyState = NotPressed;
-	//gMPosition = { 0, 0 };
+	gMPosition = { 0, 0 };
 }
 
-//Vector2i MousePos()
-//{
-//	return gMPosition;
-//}
+Float2 MousePos()
+{
+	return gMPosition;
+}
 
 void MouseMove(int X, int Y)
 {
-	//gMPosition += { X, Y };
+	gMPosition.x += X;
+	gMPosition.y += Y;
 }
 
 void KeyDownEvent(KeyCode Key)
