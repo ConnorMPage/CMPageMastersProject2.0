@@ -1,7 +1,7 @@
 #pragma once
 #include "EngineDevice.h"
 #include <DirectXMath.h>
-
+#include <stdio.h>
 
 class TerrainGen
 {
@@ -9,7 +9,7 @@ public:
 	TerrainGen();
 	~TerrainGen() = default;
 
-	bool initialiseTerrain(ID3D11Device* gfxDevice,int height,int width);
+	bool initialiseTerrain(ID3D11Device* gfxDevice);
 	void RenderTerrain(ID3D11DeviceContext* gfxContext);
 
 	int getIndexCount();
@@ -31,6 +31,14 @@ private:
 			float a;
 		}color;
 	};
+	struct HeightMapType
+	{
+		float x;
+		float y;
+		float z;
+	};
+	bool InitialiseHeightMap();
+	void NormHeightmap();
 
 
 	bool initialiseBuffers(ID3D11Device* gfxDevice);
@@ -46,6 +54,8 @@ private:
 
 	Microsoft::WRL::ComPtr <ID3D11Buffer>pVertexBuffer;
 	Microsoft::WRL::ComPtr <ID3D11Buffer>pIndexBuffer;
+
+	HeightMapType* pHeightMap;
 };
 
  

@@ -20,5 +20,6 @@ private:
 	SceneCamera* gCamera;
 
 	bool mLockFPS = true;
+	 const char* bitmapAdd = R"(../CMPageMastersProject2.0/Data/testingHMap.bmp)";
 };
 

@@ -7,8 +7,8 @@
 Scene::Scene()
 {
 	gTerrain = new TerrainGen();
-	gTerrain->initialiseTerrain(DX->pDevice.Get(), 100, 100);
-
+	gTerrain->initialiseTerrain(DX->pDevice.Get());
+	
 	gEngineShader = new EngineShaders();
 	gEngineShader->initialise(DX->pDevice.Get(), DX->window, L"vsBasicColour.cso", L"psBasicColour.cso");
 

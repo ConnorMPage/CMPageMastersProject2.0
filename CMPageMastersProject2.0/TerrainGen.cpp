@@ -4,14 +4,18 @@ TerrainGen::TerrainGen()
 {
 }
 
-bool TerrainGen::initialiseTerrain(ID3D11Device* gfxDevice, int height, int width)
+bool TerrainGen::initialiseTerrain(ID3D11Device* gfxDevice)
 {
 	bool initialised;
 
-	mTerrainHeight = height;
-	mTerrainWidth = width;
+	initialised = InitialiseHeightMap();
+	if (!initialised) return false;
+	NormHeightmap();
+
 
 	initialised = initialiseBuffers(gfxDevice);
+
+
 	return initialised;
 }
 
@@ -25,6 +29,77 @@ int TerrainGen::getIndexCount()
 	return mIndexCount;
 }
 
+bool TerrainGen::InitialiseHeightMap()
+{
+	FILE* filePtr;
+	int error;
+
+	error = fopen_s(&filePtr, "../CMPageMastersProject2.0/Data/testingHMap.bmp", "rb");
+	if (error != 0) return false;
+
+	unsigned int count;
+	BITMAPFILEHEADER bitmapFileHeader;
+	count = fread(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr);
+	if (count != 1)return false;
+
+	BITMAPINFOHEADER bitmapInfoHeader;
+	count = fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr);
+	if (count != 1) return false;
+
+	mTerrainWidth = bitmapInfoHeader.biWidth;
+	mTerrainHeight = bitmapInfoHeader.biHeight;
+
+	int imageSize = mTerrainWidth * mTerrainHeight * 3;
+
+	unsigned char* bitmapImage = new unsigned char[imageSize];
+	if (!bitmapImage) return false;
+
+	fseek(filePtr, bitmapFileHeader.bfOffBits, SEEK_SET);
+	
+	count = fread(bitmapImage, 1, imageSize, filePtr);
+	if (count != imageSize) return false;
+
+	error = fclose(filePtr);
+	if (error != 0) return false;
+
+	// create heighmap structure
+
+	pHeightMap = new HeightMapType[mTerrainWidth * mTerrainHeight];
+	
+	int k = 0;
+	unsigned char height;
+	int index;
+
+	for (int j = 0; j < mTerrainHeight; j++)
+	{
+		for (int i = 0; i < mTerrainWidth; i++)
+		{
+			height = bitmapImage[k];
+			index = (mTerrainHeight * j) + i;
+
+			pHeightMap[index].x = i;
+			pHeightMap[index].y = height;
+			pHeightMap[index].z = j;
+
+			k += 3;
+		}
+	}
+	delete[]bitmapImage;
+
+	return true;
+}
+
+void TerrainGen::NormHeightmap()
+{
+	for (int j = 0; j < mTerrainHeight; j++)
+	{
+		for (int i = 0; i < mTerrainWidth; i++)
+		{
+			pHeightMap[(mTerrainHeight * j) + i].y /= 15.0f;
+		}
+	}
+}
+
 bool TerrainGen::initialiseBuffers(ID3D11Device* gfxDevice)
 {
 	
@@ -36,7 +111,7 @@ bool TerrainGen::initialiseBuffers(ID3D11Device* gfxDevice)
 	HRESULT result;
 
 
-	int mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 8;
+	int mVertexCount = (mTerrainWidth - 1) * (mTerrainHeight - 1) * 12;
 	mIndexCount = mVertexCount;
 	
 	
@@ -52,76 +127,84 @@ bool TerrainGen::initialiseBuffers(ID3D11Device* gfxDevice)
 	}
 
 	index = 0;
-
+	int index1, index2, index3, index4;
 	for (int j = 0; j < (mTerrainHeight - 1); j++)
 	{
 		for (int i = 0; i < (mTerrainWidth - 1); i++)
 		{
-			//line 1
+			index1 = (mTerrainHeight * j) + i;
+			index2 = (mTerrainHeight * j) + (i + 1);
+			index3 = (mTerrainHeight * (j + 1)) + i;
+			index4 = (mTerrainHeight * (j + 1)) + (i + 1);
+
 			//upper left 
-			positionX = (float)i;
-			positionZ = (float)(j + 1);
-
-			vertices[index].position = { positionX, 0.0f, positionZ};
-			vertices[index].color = {1.0f, 1.0f, 1.0f, 1.0f};
-			indices[index] = index;
-			index++;
-
-			//upper right
-			positionX = (float)(i + 1);
-			positionZ = (float)(j + 1);
-			vertices[index].position = { positionX, 0.0f, positionZ };
+			vertices[index].position = { pHeightMap[index3].x, pHeightMap[index3].y, pHeightMap[index3].z };
 			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
 			indices[index] = index;
 			index++;
 
-			// LINE 2
-			// Upper right.
-			positionX = (float)(i + 1);
-			positionZ = (float)(j + 1);
-			vertices[index].position = { positionX, 0.0f, positionZ};
+			//upper right 
+			vertices[index].position = { pHeightMap[index4].x, pHeightMap[index4].y, pHeightMap[index4].z };
 			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
 			indices[index] = index;
 			index++;
 
-			// Bottom right.
-			positionX = (float)(i + 1);
-			positionZ = (float)j;
-			vertices[index].position = { positionX, 0.0f, positionZ};
+			//upper right 
+			vertices[index].position = { pHeightMap[index4].x, pHeightMap[index4].y, pHeightMap[index4].z };
 			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
 			indices[index] = index;
 			index++;
 
-			// LINE 3
-			// Bottom right.
-			positionX = (float)(i + 1);
-			positionZ = (float)j;
-			vertices[index].position = { positionX, 0.0f, positionZ };
+			//bottom left 
+			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
 			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
 			indices[index] = index;
 			index++;
 
-			// Bottom left.
-			positionX = (float)i;
-			positionZ = (float)j;
-			vertices[index].position = { positionX, 0.0f, positionZ};
+			//bottom left 
+			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
 			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
 			indices[index] = index;
 			index++;
 
-			// LINE 4
-			// Bottom left.
-			positionX = (float)i;
-			positionZ = (float)j;
-			vertices[index].position = { positionX, 0.0f, positionZ};
+			//upper left 
+			vertices[index].position = { pHeightMap[index3].x, pHeightMap[index3].y, pHeightMap[index3].z };
 			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
 			indices[index] = index;
 			index++;
 
-			// Upper left.
-			positionX = (float)i;
-			positionZ = (float)(j + 1);
-			vertices[index].position = { positionX, 0.0f, positionZ};
+			//bottom left 
+			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
+			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			indices[index] = index;
+			index++;
+
+			//Upper Right
+			vertices[index].position = { pHeightMap[index4].x, pHeightMap[index4].y, pHeightMap[index4].z };
+			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			indices[index] = index;
+			index++;
+
+			//Upper Right
+			vertices[index].position = { pHeightMap[index4].x, pHeightMap[index4].y, pHeightMap[index4].z };
+			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			indices[index] = index;
+			index++;
+
+			//Bottom Right
+			vertices[index].position = { pHeightMap[index2].x, pHeightMap[index2].y, pHeightMap[index2].z };
+			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			indices[index] = index;
+			index++;
+
+			//Bottom Right
+			vertices[index].position = { pHeightMap[index2].x, pHeightMap[index2].y, pHeightMap[index2].z };
+			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			indices[index] = index;
+			index++;
+
+			//bottom left 
+			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
 			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
 			indices[index] = index;
 			index++;
