@@ -3,6 +3,7 @@
 #include "TerrainGen.h"
 #include "EngineShaders.h"
 #include "SceneCamera.h"
+#include "UserInputDevice.h"
 
 Scene::Scene()
 {
@@ -40,4 +41,9 @@ void Scene::RenderScene()
 	int index = gTerrain->getIndexCount();
 	if (!gEngineShader->RenderShader(DX->pContext.Get(), gTerrain->getIndexCount(), DX->GetWorldMatrix(), gCamera->GetViewMatrix(), DX->GetProjectionMatrix())) return;
 	DX->PresentFrame(mLockFPS);
+}
+
+void Scene::Update(float frameTime)
+{
+	gCamera->CamControl(frameTime, Key_Up, Key_Down, Key_Left, Key_Right, Key_W, Key_S, Key_A, Key_D);
 }

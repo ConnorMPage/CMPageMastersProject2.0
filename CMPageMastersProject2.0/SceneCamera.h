@@ -1,12 +1,15 @@
 #pragma once
 #include <DirectXMath.h>
-
+#include "UserInputDevice.h"
 
 class SceneCamera
 {
 public:
 	SceneCamera();
 	~SceneCamera() = default;
+
+	void CamControl(float frameTime, KeyCode turnUp, KeyCode turnDown, KeyCode turnLeft, KeyCode turnRight,
+		KeyCode moveForward, KeyCode moveBackward, KeyCode moveLeft, KeyCode moveRight);
 
 	void SetPos(DirectX::XMFLOAT3 newPos);
 	void SetRotation(DirectX::XMFLOAT3 newRot);

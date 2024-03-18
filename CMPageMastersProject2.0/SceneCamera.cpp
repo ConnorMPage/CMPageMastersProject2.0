@@ -1,9 +1,65 @@
 #include "SceneCamera.h"
 
+const float ROTATION_SPEED = 15.0f; 
+const float MOVEMENT_SPEED = 50.0f; 
+
+
 SceneCamera::SceneCamera()
 {
 	mPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
 	mRotation = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+}
+
+void SceneCamera::CamControl(float frameTime, KeyCode turnUp, KeyCode turnDown, KeyCode turnLeft, KeyCode turnRight, KeyCode moveForward, KeyCode moveBackward, KeyCode moveLeft, KeyCode moveRight)
+{
+	if (KeyHeld(Key_D))
+	{
+		mPosition.x += MOVEMENT_SPEED * frameTime;
+		
+	}
+	if (KeyHeld(Key_A))
+	{
+		mPosition.x -= MOVEMENT_SPEED * frameTime;
+		
+	}
+	if (KeyHeld(Key_W))
+	{
+		
+		
+		mPosition.z += MOVEMENT_SPEED * frameTime;
+	}
+	if (KeyHeld(Key_S))
+	{
+		
+		mPosition.z -= MOVEMENT_SPEED * frameTime;
+	}
+
+	if (KeyHeld(Key_Down))
+	{
+		mRotation.x += ROTATION_SPEED * frameTime; 
+	}
+	if (KeyHeld(Key_Up))
+	{
+		mRotation.x -= ROTATION_SPEED * frameTime;
+	}
+	if (KeyHeld(Key_Right))
+	{
+		mRotation.y += ROTATION_SPEED * frameTime;
+	}
+	if (KeyHeld(Key_Left))
+	{
+		mRotation.y -= ROTATION_SPEED * frameTime;
+	}
+	if (KeyHeld(Key_E))
+	{
+		mPosition.y += MOVEMENT_SPEED * frameTime;
+
+	}
+	if (KeyHeld(Key_Q))
+	{
+		mPosition.y -= MOVEMENT_SPEED * frameTime;
+
+	}
 }
 
 void SceneCamera::SetPos(DirectX::XMFLOAT3 newPos)

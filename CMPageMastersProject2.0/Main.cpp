@@ -87,7 +87,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             if (KeyHit(Key_F9))  gMouseOn = !gMouseOn;
             if (KeyHit(Key_Q)) spin = !spin;
             float currentFPS = fps.GetTimeLap();
-           
+            scene->Update(currentFPS);
             scene->RenderScene();
             UpdateTitleFPS(hWnd, currentFPS);
 
