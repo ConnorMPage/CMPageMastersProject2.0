@@ -4,6 +4,9 @@
 #include "EngineShaders.h"
 #include "SceneCamera.h"
 #include "UserInputDevice.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 
 Scene::Scene()
 {
@@ -26,6 +29,11 @@ Scene::~Scene()
 void Scene::RenderScene()
 {
 	DX->beginScene(0.0f, 0.0f, 0.5f);
+
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
 	D3D11_VIEWPORT vp;
 	vp.Width = static_cast<FLOAT>(DX->GetBackbufferWidth());
 	vp.Height = static_cast<FLOAT>(DX->GetBackbufferHeight());
@@ -40,6 +48,14 @@ void Scene::RenderScene()
 	gTerrain->RenderTerrain(DX->pContext.Get());
 	int index = gTerrain->getIndexCount();
 	if (!gEngineShader->RenderShader(DX->pContext.Get(), gTerrain->getIndexCount(), DX->GetWorldMatrix(), gCamera->GetViewMatrix(), DX->GetProjectionMatrix())) return;
+	
+	int numParticles;
+	int MaxParticles = 10;
+	ImGui::Begin("Simulation Controls", 0, ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::SliderInt("Elevation Mulitplier", &numParticles, 1, MaxParticles);
+	ImGui::End();
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	DX->PresentFrame(mLockFPS);
 }
 

@@ -8,6 +8,9 @@
 #include "CommonGlobals.h"
 #include <memory>
 #include "Scene.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 
 
 bool spin = false;
@@ -46,6 +49,19 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     try
     {
         DX = std::make_unique<EngineDevice>(hWnd);
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+
+        // Setup Dear ImGui style
+        ImGui::StyleColorsDark();
+        
+
+        // Setup Platform/Renderer bindings
+        ImGui_ImplWin32_Init(hWnd);
+        ImGui_ImplDX11_Init(DX->pDevice.Get(), DX->pContext.Get());
+
         scene = std::make_unique<Scene>();
     }
     catch (std::runtime_error a)
@@ -95,6 +111,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         
         }
     }
+
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 
     return msg.wParam;
 }
@@ -152,9 +172,12 @@ HWND InitWindow(HINSTANCE hInstance, int nCmdShow, int wWidth, int wHeight)
     return hwnd;
 
 }
-
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 { // the switch case is used to handle all of the important windows messages 
+    
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) // IMGUI this line passes user input to ImGUI
+        return true;
     switch (message)
     {
     case WM_DESTROY: //if a window is destroyed 
