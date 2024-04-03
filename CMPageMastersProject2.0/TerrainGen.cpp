@@ -29,12 +29,17 @@ int TerrainGen::getIndexCount()
 	return mIndexCount;
 }
 
+void TerrainGen::Update(float updateMulti)
+{
+}
+
 bool TerrainGen::InitialiseHeightMap()
 {
 	FILE* filePtr;
 	int error;
-
-	error = fopen_s(&filePtr, "../CMPageMastersProject2.0/Data/testingHMap.bmp", "rb");
+	//../CMPageMastersProject2.0/Data/testingHMap.bmp
+	//.. / CMPageMastersProject2.0 / output.bmp
+	error = fopen_s(&filePtr, "../CMPageMastersProject2.0/Data/procHeightMap.bmp", "rb");
 	if (error != 0) return false;
 
 	unsigned int count;
@@ -45,7 +50,7 @@ bool TerrainGen::InitialiseHeightMap()
 	BITMAPINFOHEADER bitmapInfoHeader;
 	count = fread(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr);
 	if (count != 1) return false;
-
+	
 	mTerrainWidth = bitmapInfoHeader.biWidth;
 	mTerrainHeight = bitmapInfoHeader.biHeight;
 

@@ -13,6 +13,8 @@ public:
 	void RenderTerrain(ID3D11DeviceContext* gfxContext);
 
 	int getIndexCount();
+
+	void Update(float updateMulti);
 private:
 	struct VertexType
 	{

@@ -7,9 +7,12 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-
+#include "HeightmapGenerator.h"
 Scene::Scene()
 {
+	gHGen = new HeightmapGenerator();
+	gHGen->GenerateHeightmap(256, 256);
+
 	gTerrain = new TerrainGen();
 	gTerrain->initialiseTerrain(DX->pDevice.Get());
 	
@@ -30,7 +33,7 @@ void Scene::RenderScene()
 {
 	DX->beginScene(0.0f, 0.0f, 0.5f);
 
-	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplDX11_NewFrame(); 
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
