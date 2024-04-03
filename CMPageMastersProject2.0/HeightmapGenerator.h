@@ -1,4 +1,7 @@
 #pragma once
+#include <EasyBMP.h>
+
+
 class PerlinEngine;
 using namespace std;
 class HeightmapGenerator
@@ -12,7 +15,8 @@ public:
 	
 	
 private:
-	
+	void GaussianBlur(BMP& image, int radius);
+
 	PerlinEngine* PerlinNoiseGenerator;
 };
 
