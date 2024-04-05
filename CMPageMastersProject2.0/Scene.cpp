@@ -8,10 +8,12 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 #include "HeightmapGenerator.h"
+#include "Light.h"
+
 Scene::Scene()
-{
-	gHGen = new HeightmapGenerator();
-	gHGen->GenerateHeightmap(256, 256);
+{ // initialise scene objects 
+	/*gHGen = new HeightmapGenerator();
+	gHGen->GenerateHeightmap(256, 256);*/
 
 	gTerrain = new TerrainGen();
 	gTerrain->initialiseTerrain(DX->pDevice.Get());
@@ -24,6 +26,9 @@ Scene::Scene()
 
 	DirectX::XMFLOAT3 cameraPos = {50.0f,2.0f,-7.0f};
 	gCamera->SetPos(cameraPos);
+
+
+	gLight = new Light();
 }
 
 Scene::~Scene()
@@ -52,8 +57,11 @@ void Scene::RenderScene()
 	int index = gTerrain->getIndexCount();
 	if (!gEngineShader->RenderShader(DX->pContext.Get(), gTerrain->getIndexCount(), DX->GetWorldMatrix(), gCamera->GetViewMatrix(), DX->GetProjectionMatrix())) return;
 	
-	int numParticles;
+	
 	int MaxParticles = 10;
+
+
+	// IMGUI
 	ImGui::Begin("Simulation Controls", 0, ImGuiWindowFlags_AlwaysAutoResize);
 	ImGui::SliderInt("Elevation Mulitplier", &numParticles, 1, MaxParticles);
 	ImGui::End();
@@ -63,6 +71,6 @@ void Scene::RenderScene()
 }
 
 void Scene::Update(float frameTime)
-{
+{//update scene objects 
 	gCamera->CamControl(frameTime, Key_Up, Key_Down, Key_Left, Key_Right, Key_W, Key_S, Key_A, Key_D);
 }

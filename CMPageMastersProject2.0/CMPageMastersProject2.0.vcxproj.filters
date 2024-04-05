@@ -16,6 +16,12 @@
     <Filter Include="ImGui">
       <UniqueIdentifier>{32ba8a65-c403-4403-b673-fc045d4387cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="EasyBMP">
+      <UniqueIdentifier>{aecdd23c-70e0-4368-ad88-3be83ad9ef52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{3e1137b9-d97f-4617-8dbe-0fb042731c20}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -69,8 +75,11 @@
     <ClCompile Include="HeightmapGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="External\EasyBMP-master\EasyBMP.cpp">
+    <ClCompile Include="Light.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="External\EasyBMP-master\EasyBMP.cpp">
+      <Filter>EasyBMP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,12 +113,19 @@
     <ClInclude Include="HeightmapGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="External\EasyBMP-master\EasyBMP.h">
+    <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\EasyBMP-master\EasyBMP.h">
+      <Filter>EasyBMP</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\psBasicColour.hlsl" />
-    <FxCompile Include="Shaders\vsBasicColour.hlsl" />
+    <FxCompile Include="Shaders\psBasicColour.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\vsBasicColour.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

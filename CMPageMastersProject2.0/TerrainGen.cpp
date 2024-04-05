@@ -39,7 +39,7 @@ bool TerrainGen::InitialiseHeightMap()
 	int error;
 	//../CMPageMastersProject2.0/Data/testingHMap.bmp
 	//.. / CMPageMastersProject2.0 / output.bmp
-	error = fopen_s(&filePtr, "../CMPageMastersProject2.0/Data/procHeightMap.bmp", "rb");
+	error = fopen_s(&filePtr, "../CMPageMastersProject2.0/Data/testingHMap.bmp", "rb");
 	if (error != 0) return false;
 
 	unsigned int count;

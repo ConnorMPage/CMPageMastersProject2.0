@@ -60,18 +60,6 @@ bool EngineShaders::initialiseShader(ID3D11Device* gfxDevice, HWND window, const
 	
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
-	/*const D3D11_INPUT_ELEMENT_DESC ied[] =
-	{
-		{ "Position",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
-		{ "Color",0,DXGI_FORMAT_R8G8B8A8_UNORM,0,8u,D3D11_INPUT_PER_VERTEX_DATA,0 },
-	};
-	gfxDevice->CreateInputLayout(
-		ied, (UINT)std::size(ied),
-		pBlob->GetBufferPointer(),
-		pBlob->GetBufferSize(),
-		&pLayout
-	);*/
-
 
 	gfxDevice->CreateInputLayout(polygonLayout, numElements, pBlob->GetBufferPointer(),
 		pBlob->GetBufferSize(), &pLayout);
@@ -110,7 +98,7 @@ bool EngineShaders::SetShaderParameters(ID3D11DeviceContext* deviceContext, Dire
 		return false;
 	}
 
-	// Get a pointer to the data in the constant buffer.
+	// Get a pointer to the data in the constant buffer. 
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.

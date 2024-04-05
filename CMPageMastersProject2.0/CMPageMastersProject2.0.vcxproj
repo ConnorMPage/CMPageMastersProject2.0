@@ -183,6 +183,7 @@
     <ClCompile Include="External\imgui-master\imgui_draw.cpp" />
     <ClCompile Include="External\imgui-master\imgui_widgets.cpp" />
     <ClCompile Include="HeightmapGenerator.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PerlinEngine.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="EngineTimer.h" />
     <ClInclude Include="External\EasyBMP-master\EasyBMP.h" />
     <ClInclude Include="HeightmapGenerator.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="PerlinEngine.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneCamera.h" />
