@@ -1,19 +1,22 @@
 #include "TerrainGen.h"
 #include <array>
+
 TerrainGen::TerrainGen()
 {
 }
 
-bool TerrainGen::initialiseTerrain(ID3D11Device* gfxDevice)
+bool TerrainGen::initialiseTerrain(ID3D11Device* gfxDevice, std::string filename, bool norm)
 {
 	bool initialised;
 
-	initialised = InitialiseHeightMap();
+	initialised = InitialiseHeightMap(filename);
 	if (!initialised) return false;
-	NormHeightmap();
+	if(norm)NormHeightmap();
 
+	initialised = CalcNormals();
+	if (!initialised) return false;
 
-	initialised = initialiseBuffers(gfxDevice);
+	initialised = InitialiseBuffers(gfxDevice);
 
 
 	return initialised;
@@ -33,13 +36,14 @@ void TerrainGen::Update(float updateMulti)
 {
 }
 
-bool TerrainGen::InitialiseHeightMap()
+bool TerrainGen::InitialiseHeightMap(std::string filename)
 {
+	//const char* add = std::filename;
 	FILE* filePtr;
 	int error;
 	//../CMPageMastersProject2.0/Data/testingHMap.bmp
 	//.. / CMPageMastersProject2.0 / output.bmp
-	error = fopen_s(&filePtr, "../CMPageMastersProject2.0/Data/testingHMap.bmp", "rb");
+	error = fopen_s(&filePtr, filename.c_str(), "rb");
 	if (error != 0) return false;
 
 	unsigned int count;
@@ -105,7 +109,135 @@ void TerrainGen::NormHeightmap()
 	}
 }
 
-bool TerrainGen::initialiseBuffers(ID3D11Device* gfxDevice)
+bool TerrainGen::CalcNormals()
+{
+	int index1, index2, index3, index, count;
+	float vertex1[3], vertex2[3], vertex3[3], vector1[3], vector2[3], sum[3], length;
+	VectorType* normals;
+
+	normals = new VectorType[(mTerrainHeight - 1) * (mTerrainWidth - 1)];
+	if (!normals)
+	{
+		return false;
+	}
+
+	//calc mesh noramls for all faces 
+	for (int j = 0; j < mTerrainHeight - 1; j++)
+	{
+		for (int i = 0; i < mTerrainWidth - 1; i++)
+		{
+			index1 = (j * mTerrainHeight) + i;
+			index2 = (j * mTerrainHeight) + (i + 1);
+			index3 = ((j + 1) * mTerrainHeight) + i;
+
+			// Get three vertices from the face.
+			vertex1[0] = pHeightMap[index1].x;
+			vertex1[1] = pHeightMap[index1].y;
+			vertex1[2] = pHeightMap[index1].z;
+
+			vertex2[0] = pHeightMap[index2].x;
+			vertex2[1] = pHeightMap[index2].y;
+			vertex2[2] = pHeightMap[index2].z;
+
+			vertex3[0] = pHeightMap[index3].x;
+			vertex3[1] = pHeightMap[index3].y;
+			vertex3[2] = pHeightMap[index3].z;
+
+			// Calculate the two vectors for this face.
+			vector1[0] = vertex1[0] - vertex3[0];
+			vector1[1] = vertex1[1] - vertex3[1];
+			vector1[2] = vertex1[2] - vertex3[2];
+			vector2[0] = vertex3[0] - vertex2[0];
+			vector2[1] = vertex3[1] - vertex2[1];
+			vector2[2] = vertex3[2] - vertex2[2];
+
+			index = (j * (mTerrainHeight - 1)) + i;
+
+			// Calculate the cross product of those two vectors to get the un-normalized value for this face normal.
+			normals[index].x = (vector1[1] * vector2[2]) - (vector1[2] * vector2[1]);
+			normals[index].y = (vector1[2] * vector2[0]) - (vector1[0] * vector2[2]);
+			normals[index].z = (vector1[0] * vector2[1]) - (vector1[1] * vector2[0]);
+		}
+	}
+
+
+	for (int j = 0; j < mTerrainHeight; j++)
+	{
+		for (int i = 0; i < mTerrainWidth; i++)
+		{
+			// Initialize the sum.
+			sum[0] = 0.0f;
+			sum[1] = 0.0f;
+			sum[2] = 0.0f;
+
+			// Initialize the count.
+			count = 0;
+
+			// Bottom left face.
+			if (((i - 1) >= 0) && ((j - 1) >= 0))
+			{
+				index = ((j - 1) * (mTerrainHeight - 1)) + (i - 1);
+
+				sum[0] += normals[index].x;
+				sum[1] += normals[index].y;
+				sum[2] += normals[index].z;
+				count++;
+			}
+
+			// Bottom right face.
+			if ((i < (mTerrainWidth - 1)) && ((j - 1) >= 0))
+			{
+				index = ((j - 1) * (mTerrainHeight - 1)) + i;
+
+				sum[0] += normals[index].x;
+				sum[1] += normals[index].y;
+				sum[2] += normals[index].z;
+				count++;
+			}
+
+			// Upper left face.
+			if (((i - 1) >= 0) && (j < (mTerrainHeight - 1)))
+			{
+				index = (j * (mTerrainHeight - 1)) + (i - 1);
+
+				sum[0] += normals[index].x;
+				sum[1] += normals[index].y;
+				sum[2] += normals[index].z;
+				count++;
+			}
+
+			// Upper right face.
+			if ((i < (mTerrainWidth - 1)) && (j < (mTerrainHeight - 1)))
+			{
+				index = (j * (mTerrainHeight - 1)) + i;
+
+				sum[0] += normals[index].x;
+				sum[1] += normals[index].y;
+				sum[2] += normals[index].z;
+				count++;
+			}
+
+			// Take the average of the faces touching this vertex.
+			sum[0] = (sum[0] / (float)count);
+			sum[1] = (sum[1] / (float)count);
+			sum[2] = (sum[2] / (float)count);
+
+			// Calculate the length of this normal.
+			length = sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
+
+			index = (j * mTerrainHeight) + i;
+
+			
+			pHeightMap[index].norm.x = (sum[0] / length);
+			pHeightMap[index].norm.y = (sum[1] / length);
+			pHeightMap[index].norm.z = (sum[2] / length);
+		}
+	}
+	delete[] normals;
+	return true;
+}
+
+bool TerrainGen::InitialiseBuffers(ID3D11Device* gfxDevice)
 {
 	
 	unsigned long* indices;
@@ -144,75 +276,42 @@ bool TerrainGen::initialiseBuffers(ID3D11Device* gfxDevice)
 
 			//upper left 
 			vertices[index].position = { pHeightMap[index3].x, pHeightMap[index3].y, pHeightMap[index3].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			vertices[index].normal = { pHeightMap[index3].norm.x, pHeightMap[index3].norm.y, pHeightMap[index3].norm.z };
 			indices[index] = index;
 			index++;
 
 			//upper right 
 			vertices[index].position = { pHeightMap[index4].x, pHeightMap[index4].y, pHeightMap[index4].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			vertices[index].normal = { pHeightMap[index4].norm.x, pHeightMap[index4].norm.y, pHeightMap[index4].norm.z };
 			indices[index] = index;
 			index++;
 
-			//upper right 
-			vertices[index].position = { pHeightMap[index4].x, pHeightMap[index4].y, pHeightMap[index4].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+			//bottom left 
+			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
+			vertices[index].normal = { pHeightMap[index1].norm.x, pHeightMap[index1].norm.y, pHeightMap[index1].norm.z };
 			indices[index] = index;
 			index++;
 
 			//bottom left 
 			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
-			indices[index] = index;
-			index++;
-
-			//bottom left 
-			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
-			indices[index] = index;
-			index++;
-
-			//upper left 
-			vertices[index].position = { pHeightMap[index3].x, pHeightMap[index3].y, pHeightMap[index3].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
-			indices[index] = index;
-			index++;
-
-			//bottom left 
-			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			vertices[index].normal = { pHeightMap[index1].norm.x, pHeightMap[index1].norm.y, pHeightMap[index1].norm.z };
 			indices[index] = index;
 			index++;
 
 			//Upper Right
 			vertices[index].position = { pHeightMap[index4].x, pHeightMap[index4].y, pHeightMap[index4].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			vertices[index].normal = { pHeightMap[index4].norm.x, pHeightMap[index4].norm.y, pHeightMap[index4].norm.z };
 			indices[index] = index;
 			index++;
 
-			//Upper Right
-			vertices[index].position = { pHeightMap[index4].x, pHeightMap[index4].y, pHeightMap[index4].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
-			indices[index] = index;
-			index++;
 
 			//Bottom Right
 			vertices[index].position = { pHeightMap[index2].x, pHeightMap[index2].y, pHeightMap[index2].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			vertices[index].normal = { pHeightMap[index2].norm.x, pHeightMap[index2].norm.y, pHeightMap[index2].norm.z };
 			indices[index] = index;
 			index++;
 
-			//Bottom Right
-			vertices[index].position = { pHeightMap[index2].x, pHeightMap[index2].y, pHeightMap[index2].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
-			indices[index] = index;
-			index++;
-
-			//bottom left 
-			vertices[index].position = { pHeightMap[index1].x, pHeightMap[index1].y, pHeightMap[index1].z };
-			vertices[index].color = { 1.0f, 1.0f, 1.0f, 1.0f };
-			indices[index] = index;
-			index++;
 		}
 	}
 
@@ -281,5 +380,5 @@ void TerrainGen::RenderBuffers(ID3D11DeviceContext* gfxContext)
 
 	gfxContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0u);
 
-	gfxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	gfxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }

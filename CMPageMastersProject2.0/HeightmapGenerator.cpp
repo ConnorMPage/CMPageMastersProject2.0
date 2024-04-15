@@ -11,62 +11,33 @@ HeightmapGenerator::HeightmapGenerator()
     PerlinNoiseGenerator = new PerlinEngine();
 }
 
-void HeightmapGenerator::GenerateHeightmap(int height, int width)
-{
-    double scaleFactor = 2;
+bool HeightmapGenerator::GenerateHeightmap(int height, int width, int scale)
+{ 
+    bool result;
+    double scaleFactor = scale;
 	BMP heightMap;
 	heightMap.SetSize(width, height);
-    heightMap.SetBitDepth(24);
+   heightMap.SetBitDepth(24);
+    double maxValue = 0.0;
+    double minValue = std::numeric_limits<double>::max();
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-          /*  double nx = x / static_cast<double>(width) - 0.5;
+            double nx = x / static_cast<double>(width) - 0.5;
             double ny = y / static_cast<double>(height) - 0.5;
-            double noiseValue = PerlinNoiseGenerator->OctaveNoise(nx, ny, 0, 16, 0.7);
+            double noiseValue = PerlinNoiseGenerator->OctaveNoise(nx * scaleFactor, ny * scaleFactor, 0, 4, 0.5);
 
-            noiseValue = (noiseValue + 1.0) / 2.0;
-            noiseValue *= scaleFactor;
-            int grayValue = static_cast<int>(noiseValue * 255);
-            heightMap(x, y).Red = grayValue;
-            heightMap(x, y).Green = grayValue;
-            heightMap(x, y).Blue = grayValue;*/
+          
+            if (noiseValue > maxValue) maxValue = noiseValue;
+            if (noiseValue < minValue) minValue = noiseValue;
+            heightMap(x, y).Red = heightMap(x, y).Green = heightMap(x, y).Blue = static_cast<ebmpBYTE>((noiseValue + 1.0) / 2.0 * 255.0);
         }
         
     }
     //GaussianBlur(heightMap, 2);
-	heightMap.WriteToFile("../CMPageMastersProject2.0/Data/procHeightMap.bmp");
+	result = heightMap.WriteToFile("../CMPageMastersProject2.0/Data/GeneratedHeightMap.bmp");
+    return result;
 }
 
-void HeightmapGenerator::GaussianBlur(BMP& image, int radius)
-{
-    //int width = image.TellWidth();
-    //int height = image.TellHeight();
 
-    //BMP tempImage;
-    //tempImage.SetSize(width, height);
-
-    //for (int x = 0; x < width; ++x) {
-    //    for (int y = 0; y < height; ++y) {
-    //        double sum = 0.0;
-    //        double totalWeight = 0.0;
-
-    //        for (int dx = -radius; dx <= radius; ++dx) {
-    //            for (int dy = -radius; dy <= radius; ++dy) {
-    //                int nx = std::min(std::max(x + dx, 0), width - 1);
-    //                int ny = std::min(std::max(y + dy, 0), height - 1);
-
-    //                double weight = exp(-(dx * dx + dy * dy) / (2.0 * radius * radius));
-    //                sum += weight * image(nx, ny).Red; // Assuming grayscale image
-    //                totalWeight += weight;
-    //            }
-    //        }
-
-    //        tempImage(x, y).Red = static_cast<int>(sum / totalWeight);
-    //        tempImage(x, y).Green = tempImage(x, y).Red;
-    //        tempImage(x, y).Blue = tempImage(x, y).Red;
-    //    }
-    //}
-
-    //image = tempImage;
-}
 
 

@@ -11,11 +11,11 @@ public:
 	HeightmapGenerator();
 	~HeightmapGenerator() = default;
 
-	void GenerateHeightmap(int height, int width);
+	bool GenerateHeightmap(int height, int width, int scale);
 	
 	
 private:
-	void GaussianBlur(BMP& image, int radius);
+	
 
 	PerlinEngine* PerlinNoiseGenerator;
 };

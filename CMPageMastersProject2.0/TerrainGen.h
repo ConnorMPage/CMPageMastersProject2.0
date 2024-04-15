@@ -2,14 +2,14 @@
 #include "EngineDevice.h"
 #include <DirectXMath.h>
 #include <stdio.h>
-
+#include <string>
 class TerrainGen
 {
 public:
 	TerrainGen();
 	~TerrainGen() = default;
 
-	bool initialiseTerrain(ID3D11Device* gfxDevice);
+	bool initialiseTerrain(ID3D11Device* gfxDevice, std::string filename, bool norm);
 	void RenderTerrain(ID3D11DeviceContext* gfxContext);
 
 	int getIndexCount();
@@ -27,23 +27,38 @@ private:
 		 } position;
 		struct  
 		{
-			float r;
-			float g;
-			float b;
-			float a;
-		}color;
+			float x;
+			float y;
+			float z;
+			
+		}normal;
 	};
 	struct HeightMapType
 	{
 		float x;
 		float y;
 		float z;
+
+		struct
+		{
+			float x;
+			float y;
+			float z;
+		}norm;
 	};
-	bool InitialiseHeightMap();
+
+
+	struct VectorType {
+		float x; 
+		float y;
+		float z;
+	};
+	bool InitialiseHeightMap(std::string filename);
 	void NormHeightmap();
 
+	bool CalcNormals();
 
-	bool initialiseBuffers(ID3D11Device* gfxDevice);
+	bool InitialiseBuffers(ID3D11Device* gfxDevice);
 	void RenderBuffers(ID3D11DeviceContext* gfxContext);
 
 	int mTerrainWidth;

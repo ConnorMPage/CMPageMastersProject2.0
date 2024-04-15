@@ -7,13 +7,13 @@ cbuffer MatrixBuffer
 struct VertexInputType
 {
     float4 position : POSITION;
-    float4 color : COLOR;
+    float3 normal : NORMAL;
 };
 
 struct PixelInputType
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
+    float3 normal : NORMAL;
 };
 
 PixelInputType main(VertexInputType input)
@@ -29,8 +29,11 @@ PixelInputType main(VertexInputType input)
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
-	// Store the input color for the pixel shader to use.
-    output.color = input.color;
+	// Calculate the normal vector against the world matrix only.
+    output.normal = mul(input.normal, (float3x3) worldMatrix);
+	
+    // Normalize the normal vector.
+    output.normal = normalize(output.normal);
     
     return output;
 }

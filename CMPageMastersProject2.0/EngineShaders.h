@@ -11,6 +11,8 @@ public:
 
 	bool initialise(ID3D11Device* gfxDevice, HWND window, const std::wstring& vsFilename, const std::wstring& psFilename);
 
+	void InputLight(DirectX::XMFLOAT4 AmbientColour, DirectX::XMFLOAT4 DiffuseColour, DirectX::XMFLOAT3 Direction);
+
 	bool RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix,
 		DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix);
 private:
@@ -19,6 +21,12 @@ private:
 		DirectX::XMMATRIX world;
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX projection;
+	};
+	struct LightBufferType {
+		DirectX::XMFLOAT4 AmbientColour;
+		DirectX::XMFLOAT4 DiffuseColour;
+		DirectX::XMFLOAT3 Direction;
+		float padding;
 	};
 
 	bool initialiseShader(ID3D11Device* gfxDevice, HWND window, const std::wstring& vsFilename, const std::wstring& psFilename);
@@ -33,7 +41,14 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
-	ID3D11Buffer* pMatrixBuffer;
 	
+	ID3D11SamplerState* pSampleState;
+	ID3D11Buffer* pMatrixBuffer;
+	ID3D11Buffer* pLightBuffer;
+
+
+	DirectX::XMFLOAT4 mLightAmbientColour;
+	DirectX::XMFLOAT4 mLightDiffuseColour;
+	DirectX::XMFLOAT3 mLightDirection;
 };
 
