@@ -5,16 +5,16 @@ class PerlinEngine
 public:
 	
 	
-	PerlinEngine();
+	PerlinEngine();//constructor 
 
-	~PerlinEngine() = default;
+	~PerlinEngine() = default;//destructor 
 
-	double OctaveNoise(double x, double y, double z, int octaves, double persistence);
+	double OctaveNoise(double x, double y, double z, int octaves, double persistence);//main function 
 private:
-	double Fade(double t);
-	double Lerp(double t, double a, double b);
+	double Fade(double t);//fade function
+	double Lerp(double t, double a, double b);//linear interpolation
 	double Grad(int hash, double x, double y, double z);
-	double Noise(double x, double y, double z);
+	double Noise(double x, double y, double z);//do this each iteration / octave
 	
 	int p[512];
 	

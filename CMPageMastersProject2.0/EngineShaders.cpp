@@ -6,30 +6,32 @@ EngineShaders::EngineShaders()
 	
 }
 
-bool EngineShaders::initialise(ID3D11Device* gfxDevice, HWND window, const std::wstring& vsFilename, const std::wstring& psFilename)
+bool EngineShaders::Initialise(ID3D11Device* gfxDevice, HWND window, const std::wstring& vsFilename, const std::wstring& psFilename)
 {
 	vsFile = vsFilename;
 	psFile = psFilename;
 
-	bool result = initialiseShader(gfxDevice, window, L"../Shaders\vsBasicColour.cso", L"psBasicColour.cso");
+	bool result = InitialiseShader(gfxDevice, window, L"../Shaders\vsBasicColour.cso", L"psBasicColour.cso");//initalise shaders 
 	return result;
 }
 
 void EngineShaders::InputLight(DirectX::XMFLOAT4 AmbientColour, DirectX::XMFLOAT4 DiffuseColour, DirectX::XMFLOAT3 Direction)
-{
+{//input light variables
 	mLightAmbientColour = AmbientColour;
 	mLightDiffuseColour = DiffuseColour;
 	mLightDirection = Direction;
 }
 
-bool EngineShaders::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix)
+bool EngineShaders::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, int scale)
 {
-	bool result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix);
-	FinalShaderRender(deviceContext, indexCount);
+	bool result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix,scale);//set per frame constants 
+	FinalShaderRender(deviceContext, indexCount);//draw mesh
 	return result;
 }
 
-bool EngineShaders::initialiseShader(ID3D11Device* gfxDevice, HWND window, const std::wstring& vsFilename, const std::wstring& psFilename)
+
+
+bool EngineShaders::InitialiseShader(ID3D11Device* gfxDevice, HWND window, const std::wstring& vsFilename, const std::wstring& psFilename)
 {
 	HRESULT result;
 	Microsoft::WRL::ComPtr<ID3DBlob> pBlob;
@@ -38,16 +40,16 @@ bool EngineShaders::initialiseShader(ID3D11Device* gfxDevice, HWND window, const
 	
 	
 	result =D3DReadFileToBlob(L"psBasicColour.cso", &pBlob);
-	result =  gfxDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
+	result =  gfxDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);//create the pixel shader
 
 	
-	result = D3DReadFileToBlob(L"vsBasicColour.cso", &pBlob);
-	result = gfxDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);
+	result = D3DReadFileToBlob(L"vsBasicColour.cso", &pBlob);//reuse blob
+	result = gfxDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);//create the vertex shader
 
 	
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
-
+	//set the position semantic 
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -55,7 +57,7 @@ bool EngineShaders::initialiseShader(ID3D11Device* gfxDevice, HWND window, const
 	polygonLayout[0].AlignedByteOffset = 0;
 	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[0].InstanceDataStepRate = 0;
-
+	//set the normal semantic 
 	polygonLayout[1].SemanticName = "NORMAL";
 	polygonLayout[1].SemanticIndex = 0;
 	polygonLayout[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -71,8 +73,8 @@ bool EngineShaders::initialiseShader(ID3D11Device* gfxDevice, HWND window, const
 	gfxDevice->CreateInputLayout(polygonLayout, numElements, pBlob->GetBufferPointer(),
 		pBlob->GetBufferSize(), &pLayout);
 
+	//initalise and create the matrix buffer
 	D3D11_BUFFER_DESC matrixBufferDesc;
-
 
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
@@ -84,6 +86,7 @@ bool EngineShaders::initialiseShader(ID3D11Device* gfxDevice, HWND window, const
 	
 	gfxDevice->CreateBuffer(&matrixBufferDesc, nullptr, &pMatrixBuffer);
 
+	//initalise and create the sampler 
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -100,6 +103,7 @@ bool EngineShaders::initialiseShader(ID3D11Device* gfxDevice, HWND window, const
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	gfxDevice->CreateSamplerState(&samplerDesc, &pSampleState);
 
+	//initalise and create the light buffer
 	D3D11_BUFFER_DESC lightBufferDesc;
 	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
@@ -109,16 +113,30 @@ bool EngineShaders::initialiseShader(ID3D11Device* gfxDevice, HWND window, const
 	lightBufferDesc.StructureByteStride = 0;
 	gfxDevice->CreateBuffer(&lightBufferDesc, nullptr, &pLightBuffer);
 
+
+	//useless
+	D3D11_BUFFER_DESC UpdateBufferDesc;
+
+	UpdateBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	UpdateBufferDesc.ByteWidth = sizeof(UpdateBufferType);
+	UpdateBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	UpdateBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	UpdateBufferDesc.MiscFlags = 0;
+	UpdateBufferDesc.StructureByteStride = 0;
+
+
+	gfxDevice->CreateBuffer(&UpdateBufferDesc, nullptr, &pUpdateBuffer);
+
 	return true;
 }
 
-bool EngineShaders::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix)
+bool EngineShaders::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX worldMatrix, DirectX::XMMATRIX viewMatrix, DirectX::XMMATRIX projectionMatrix, int scale)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
+	
 	unsigned int bufferNumber;
-
+	
 	worldMatrix = DirectX::XMMatrixTranspose(worldMatrix);
 	viewMatrix = DirectX::XMMatrixTranspose(viewMatrix);
 	projectionMatrix = DirectX::XMMatrixTranspose(projectionMatrix);
@@ -133,20 +151,22 @@ bool EngineShaders::SetShaderParameters(ID3D11DeviceContext* deviceContext, Dire
 	// Get a pointer to the data in the constant buffer. 
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
-	// Copy the matrices into the constant buffer.
+	
 	dataPtr->world = worldMatrix;
 	dataPtr->view = viewMatrix;
 	dataPtr->projection = projectionMatrix;
-
+	dataPtr->scaler = scale;
 	// Unlock the constant buffer.
 	deviceContext->Unmap(pMatrixBuffer, 0);
 
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
-	// Finanly set the constant buffer in the vertex shader with the updated values.
+	//  set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &pMatrixBuffer);
 
+
+	//sets the lighting buffer for pixel shader
 	LightBufferType* dataPtr2;
 	deviceContext->Map(pLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr2 = (LightBufferType*)mappedResource.pData;
@@ -164,12 +184,13 @@ bool EngineShaders::SetShaderParameters(ID3D11DeviceContext* deviceContext, Dire
 
 void EngineShaders::FinalShaderRender(ID3D11DeviceContext* deviceContext, UINT indexCount)
 {
+	//sets input layout 
 	deviceContext->IASetInputLayout(pLayout.Get());
 
-	
+	//sets the shaders 
 	deviceContext->VSSetShader(pVertexShader.Get(), NULL, 0);
 	deviceContext->PSSetShader(pPixelShader.Get(), NULL, 0);
 
 	
-	deviceContext->DrawIndexed(indexCount,0u,0u);
+	deviceContext->DrawIndexed(indexCount,0u,0u);//draws terrain
 }

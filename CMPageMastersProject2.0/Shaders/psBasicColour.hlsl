@@ -2,8 +2,8 @@ SamplerState SampleType;
 
 cbuffer LightBuffer
 {
-    float4 ambientColor;
-    float4 diffuseColor;
+    float4 ambientColour;
+    float4 diffuseColour;
     float3 lightDirection;
     float padding;
 };
@@ -18,11 +18,11 @@ float4 main(PixelInputType input) : SV_TARGET
 {
     float3 lightDir;
     float lightIntensity;
-    float4 color;
+    float4 colour;
 
 
-	// Set the default output color to the ambient light value for all pixels.
-    color = ambientColor;
+	// Set the default output colour to the ambient light value for all pixels.
+    colour = ambientColour;
 
 	// Invert the light direction for calculations.
     lightDir = -lightDirection;
@@ -33,11 +33,11 @@ float4 main(PixelInputType input) : SV_TARGET
     if (lightIntensity > 0.0f)
     {
        
-        color += (diffuseColor * lightIntensity);
+        colour += (diffuseColour * lightIntensity);
     }
 
     
-    color = saturate(color);
+    colour = saturate(colour);
 
-    return color;
+    return colour;
 }

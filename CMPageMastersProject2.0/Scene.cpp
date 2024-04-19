@@ -36,7 +36,7 @@ Scene::~Scene()
 {}
 
 void Scene::RenderScene()
-{
+{//render each frame 
 	DX->beginScene(0.0f, 0.0f, 0.5f);
 
 	ImGui_ImplDX11_NewFrame(); 
@@ -58,12 +58,8 @@ void Scene::RenderScene()
 		gEngineShader->InputLight(gLight->GetLightData().AmbientColour, gLight->GetLightData().DiffuseColour, gLight->GetLightData().Direction);
 		gTerrain->RenderTerrain(DX->pContext.Get());
 		int index = gTerrain->getIndexCount();
-		if (!gEngineShader->RenderShader(DX->pContext.Get(), gTerrain->getIndexCount(), DX->GetWorldMatrix(), gCamera->GetViewMatrix(), DX->GetProjectionMatrix())) return;
+		if (!gEngineShader->RenderShader(DX->pContext.Get(), gTerrain->getIndexCount(), DX->GetWorldMatrix(), gCamera->GetViewMatrix(), DX->GetProjectionMatrix(),mRuntimeScale)) return;
 	}
-	
-	
-	
-	int MaxParticles = 10;
 
 
 	// IMGUI
@@ -71,13 +67,14 @@ void Scene::RenderScene()
 	ImGui::SliderInt("HeightMap Width", &mHeightMapWidth, MINMAPSIZE, MAXMAPSIZE);
 	ImGui::SliderInt("HeightMap Height", &mHeightMapHeight, MINMAPSIZE, MAXMAPSIZE);
 	ImGui::SliderInt("HeightMap Scale", &mHeightMapScale, MINMAPSCALE, MAXMAPSCALE);
+	ImGui::SliderInt("Octaves", &mOctavesAmount, MINOCTAVES, MAXOCTAVES);
 	if (ImGui::Button("Generate HeightMap", ImVec2(350, 50))) CreateHeightmap();
 	if (ImGui::Button("Select File", ImVec2(350, 50)))OpenFile();
 	ImGui::Checkbox("Normalise Heightmap", &mNormalised);
-	
 	if (ImGui::Button("Initialise Terrain", ImVec2(350, 50)))if (!mTerrainSet) mTerrainSet = InitialiseTerrainGenerator();
-	if (ImGui::Button("Show Terrain", ImVec2(350, 50)))if (mTerrainSet) mDisplayTerrain = !mDisplayTerrain;
+	
 	if (ImGui::Button("Reset", ImVec2(350, 50))) Reset();
+	ImGui::SliderInt("Terrain Scale", &mRuntimeScale, MINMAPSCALE, MAXMAPSCALE);
 	ImGui::End();
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -87,6 +84,7 @@ void Scene::RenderScene()
 void Scene::Update(float frameTime)
 {//update scene objects 
 	gCamera->CamControl(frameTime, Key_Up, Key_Down, Key_Left, Key_Right, Key_W, Key_S, Key_A, Key_D);
+	
 }
 
 bool Scene::InitialiseTerrainGenerator()
@@ -99,26 +97,28 @@ bool Scene::InitialiseTerrainGenerator()
 		return false;
 	}
 	
-	result = gTerrain->initialiseTerrain(DX->pDevice.Get(), mHMapAddress,mNormalised);
-	result = gEngineShader->initialise(DX->pDevice.Get(), DX->window, L"vsBasicColour.cso", L"psBasicColour.cso");
+	result = gTerrain->InitialiseTerrain(DX->pDevice.Get(), mHMapAddress,mNormalised);
+	result = gEngineShader->Initialise(DX->pDevice.Get(), DX->window, L"vsBasicColour.cso", L"psBasicColour.cso");
+	mDisplayTerrain = true;
 	return result;
 }
 
 bool Scene::CreateHeightmap()
 {
 	bool result;
-	result = gHGen->GenerateHeightmap(mHeightMapHeight, mHeightMapWidth, mHeightMapScale);
+	result = gHGen->GenerateHeightmap(mHeightMapHeight, mHeightMapWidth, mHeightMapScale,mOctavesAmount);
+	mHMapAddress = "../CMPageMastersProject2.0/Data/GeneratedHeightMap.bmp";
 	return result;
 }
 
 bool Scene::OpenFile()
 {
-	//  CREATE FILE OBJECT INSTANCE
+	// crreate file instance
 	HRESULT f_SysHr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 	if (FAILED(f_SysHr))
 		return FALSE;
 
-	// CREATE FileOpenDialog OBJECT
+	// create dialoge box
 	IFileOpenDialog* f_FileSystem;
 	f_SysHr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&f_FileSystem));
 	if (FAILED(f_SysHr)) {
@@ -126,7 +126,7 @@ bool Scene::OpenFile()
 		return FALSE;
 	}
 
-	//  SHOW OPEN FILE DIALOG WINDOW
+	//  show box
 	f_SysHr = f_FileSystem->Show(NULL);
 	if (FAILED(f_SysHr)) {
 		f_FileSystem->Release();
@@ -134,7 +134,7 @@ bool Scene::OpenFile()
 		return FALSE;
 	}
 
-	//  RETRIEVE FILE NAME FROM THE SELECTED ITEM
+	//  retrieve selected file name 
 	IShellItem* f_Files;
 	f_SysHr = f_FileSystem->GetResult(&f_Files);
 	if (FAILED(f_SysHr)) {
@@ -143,7 +143,7 @@ bool Scene::OpenFile()
 		return FALSE;
 	}
 
-	//  STORE AND CONVERT THE FILE NAME
+	//  store file name
 	PWSTR f_Path;
 	f_SysHr = f_Files->GetDisplayName(SIGDN_FILESYSPATH, &f_Path);
 	if (FAILED(f_SysHr)) {
@@ -152,17 +152,14 @@ bool Scene::OpenFile()
 		CoUninitialize();
 		return FALSE;
 	}
-
-	//  FORMAT AND STORE THE FILE PATH
 	std::wstring path(f_Path);
 	std::string c(path.begin(), path.end());
 	mHMapAddress = c;
 
-	//  FORMAT STRING FOR EXECUTABLE NAME
 	const size_t slash = mHMapAddress.find_last_of("/\\");
 	mHMapName = mHMapAddress.substr(slash + 1);
 
-	//  SUCCESS, CLEAN UP
+
 	CoTaskMemFree(f_Path);
 	f_Files->Release();
 	f_FileSystem->Release();
@@ -172,7 +169,7 @@ bool Scene::OpenFile()
 }
 
 void Scene::Reset()
-{
+{//delete and reset 
 	delete gTerrain;
 	gTerrain = new TerrainGen();
 	mDisplayTerrain = false;

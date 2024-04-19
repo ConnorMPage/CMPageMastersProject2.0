@@ -8,15 +8,15 @@ class HeightmapGenerator
 {
 public:
 
-	HeightmapGenerator();
-	~HeightmapGenerator() = default;
+	HeightmapGenerator();//constructor 
+	~HeightmapGenerator() = default;//destructor 
 
-	bool GenerateHeightmap(int height, int width, int scale);
+	bool GenerateHeightmap(int height, int width, int scale, int octaves);//function to create a heightmap 
 	
 	
 private:
 	
 
-	PerlinEngine* PerlinNoiseGenerator;
+	PerlinEngine* PerlinNoiseGenerator;//reference to perlin engine 
 };
 

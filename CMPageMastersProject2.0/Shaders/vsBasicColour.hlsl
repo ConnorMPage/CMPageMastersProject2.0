@@ -3,7 +3,9 @@ cbuffer MatrixBuffer
     matrix worldMatrix;
     matrix viewMatrix;
     matrix projectionMatrix;
+    float scaler;
 };
+
 struct VertexInputType
 {
     float4 position : POSITION;
@@ -23,7 +25,9 @@ PixelInputType main(VertexInputType input)
 
 	// Change the position vector to be 4 units for proper matrix calculations.
     input.position.w = 1.0f;
-
+    input.position.y *= scaler;
+    if (scaler > 1)
+        input.position.y -= (scaler * 10);
 	// Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(input.position, worldMatrix);
     output.position = mul(output.position, viewMatrix);

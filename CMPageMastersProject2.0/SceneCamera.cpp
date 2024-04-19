@@ -83,7 +83,7 @@ DirectX::XMFLOAT3 SceneCamera::GetRotation()
 }
 
 void SceneCamera::RenderCam()
-{
+{//looks complicated doing maths then converting it to xmvector because xmvector is harder ot use 
 	DirectX::XMFLOAT3 up;
 	up.x = 0.0f;
 	up.y = 1.0f;

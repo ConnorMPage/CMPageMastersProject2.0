@@ -11,7 +11,7 @@ HeightmapGenerator::HeightmapGenerator()
     PerlinNoiseGenerator = new PerlinEngine();
 }
 
-bool HeightmapGenerator::GenerateHeightmap(int height, int width, int scale)
+bool HeightmapGenerator::GenerateHeightmap(int height, int width, int scale, int octaves)
 { 
     bool result;
     double scaleFactor = scale;
@@ -24,17 +24,17 @@ bool HeightmapGenerator::GenerateHeightmap(int height, int width, int scale)
         for (int x = 0; x < width; ++x) {
             double nx = x / static_cast<double>(width) - 0.5;
             double ny = y / static_cast<double>(height) - 0.5;
-            double noiseValue = PerlinNoiseGenerator->OctaveNoise(nx * scaleFactor, ny * scaleFactor, 0, 4, 0.5);
+            double noiseValue = PerlinNoiseGenerator->OctaveNoise(nx * scaleFactor, ny * scaleFactor, 0, octaves, 0.5);//use the noise generator to get the noise value 
 
           
             if (noiseValue > maxValue) maxValue = noiseValue;
             if (noiseValue < minValue) minValue = noiseValue;
-            heightMap(x, y).Red = heightMap(x, y).Green = heightMap(x, y).Blue = static_cast<ebmpBYTE>((noiseValue + 1.0) / 2.0 * 255.0);
+            heightMap(x, y).Red = heightMap(x, y).Green = heightMap(x, y).Blue = static_cast<ebmpBYTE>((noiseValue + 1.0) / 2.0 * 255.0);//set as greyscale 
         }
         
     }
-    //GaussianBlur(heightMap, 2);
-	result = heightMap.WriteToFile("../CMPageMastersProject2.0/Data/GeneratedHeightMap.bmp");
+   
+	result = heightMap.WriteToFile("../CMPageMastersProject2.0/Data/GeneratedHeightMap.bmp");//write to file 
     return result;
 }
 

@@ -5,7 +5,7 @@ TerrainGen::TerrainGen()
 {
 }
 
-bool TerrainGen::initialiseTerrain(ID3D11Device* gfxDevice, std::string filename, bool norm)
+bool TerrainGen::InitialiseTerrain(ID3D11Device* gfxDevice, std::string filename, bool norm)
 {
 	bool initialised;
 
